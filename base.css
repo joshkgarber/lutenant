@@ -1,0 +1,8 @@
+.container {
+    color: var(--theme-text);
+    border: 1px solid var(--theme-accent);
+    height: 500px;
+    width: 500px;
+    display: grid;
+    place-items: center;
+}

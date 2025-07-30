@@ -1,7 +1,40 @@
-body {
-    background-color: #000517;
+:root {
+    --jkg-blue: #000517;
+    --theme-darkest: #121812;
+    --theme-darker: #379237;
+    --theme-dark: #54B435;
+    --theme-light: #82CD47;
+    --theme-accent: #F0FF42;
+    --theme-text: #F0FFF0;
 }
 
-lut-hello {
-    color: white;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 14px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+body {
+    min-height: 100vh;
+    background-color: var(--jkg-blue);
+    display:grid;
+    place-items: center;
+}
+
+lieutenant-spinner {
+    display: inline-block;
+    color: var(--theme-text);
+    text-align: center;
+    width: 500px;
+}
+
+lieutenant-error {
+    display: inline-block;
+    color: var(--theme-text);
+    text-align: center;
+    width: 500px;
 }
