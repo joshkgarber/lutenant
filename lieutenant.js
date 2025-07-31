@@ -56,25 +56,21 @@ export class LieutenantBase extends HTMLElement {
         }
     }
     stashContent() {
-        if (this.shadowRoot) {
-            this.stashedStyleSheets = Array.from(this.shadowRoot.adoptedStyleSheets);
-            this.shadowRoot.adoptedStyleSheets.length = 0;
-        }
+        this.stashedStyleSheets = Array.from(this.shadowRoot.adoptedStyleSheets);
+        this.shadowRoot.adoptedStyleSheets.length = 0;
         this.stashedChildNodes = Array.from(this.shadowRoot.childNodes);
         this.shadowRoot.childNodes.forEach((node) => {
             node.remove();
         });
     }
     restoreContent() {
-        if (this.shadowRoot) {
-            this.shadowRoot.adoptedStyleSheets = this.stashedStyleSheets;
-            this.removeLoading();
-            this.stashedChildNodes.forEach((node) => {
-                this.shadowRoot.appendChild(node);
-            });
-            this.stashedStyleSheets = null;
-            this.stashedChildNodes = null;
-        }
+        this.shadowRoot.adoptedStyleSheets = this.stashedStyleSheets;
+        this.removeLoading();
+        this.stashedChildNodes.forEach((node) => {
+            this.shadowRoot.appendChild(node);
+        });
+        this.stashedStyleSheets = null;
+        this.stashedChildNodes = null;
     }
     removeLoading() {
         this.shadowRoot.querySelector("lieutenant-spinner").remove();
