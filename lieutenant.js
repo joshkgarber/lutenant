@@ -72,6 +72,8 @@ export class LieutenantBase extends HTMLElement {
             this.stashedChildNodes.forEach((node) => {
                 this.shadowRoot.appendChild(node);
             });
+            this.stashedStyleSheets = null;
+            this.stashedChildNodes = null;
         }
     }
     removeLoading() {
@@ -89,6 +91,7 @@ export class LieutenantBase extends HTMLElement {
                 throw new Error(`HTTP error: ${response.status}`);
             }
             const json = await response.json();
+            this.restoreContent();
             callback(json);
         }
         catch(error) {
@@ -177,7 +180,6 @@ export class SimpleCard extends LieutenantBase {
     continue() {
         const resource = this.getAttribute("data-resource");
         this.fetchGet(resource, (data) => {
-            this.restoreContent();
             this.shadowRoot.querySelector(".title").textContent = data.title;
             this.shadowRoot.querySelector(".body").textContent = data.body;
             this.shadowRoot.querySelector(".footer").textContent = data.footer;
