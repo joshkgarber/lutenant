@@ -10,13 +10,13 @@ export class LieutenantBase extends HTMLElement {
         this.render();
     }
     showLoading() {
-        this.clearContent();
-        const loadingWidth = this.getAttribute("data-loading-width");
+        this.stashContent();
         const loadingHeight = this.getAttribute("data-loading-height");
-        this.shadowRoot.appendChild(new LieutenantSpinner(loadingWidth, loadingHeight));
+        const loadingWidth = this.getAttribute("data-loading-width");
+        this.shadowRoot.appendChild(new LieutenantSpinner(loadingHeight, loadingWidth));
     }
     showError(message) {
-        this.clearContent();
+        this.stashContent();
         this.shadowRoot.appendChild(new LieutenantError(message));
     }
     async render() {
@@ -28,14 +28,14 @@ export class LieutenantBase extends HTMLElement {
             const stylesText = await response.text();
             const stylesheet = new CSSStyleSheet();
             stylesheet.replaceSync(stylesText);
-            this.renderContentWith(stylesheet);
+            this.renderContent(stylesheet);
         }
         catch(error) {
             console.error(`Fetch problem: ${error.message}`);
             this.showError("Something went wrong.");
         }
     }
-    async renderContentWith(stylesheet) {
+    async renderContent(stylesheet) {
         try {
             const response = await fetch(this.content);
             if (!response.ok) {
@@ -55,13 +55,24 @@ export class LieutenantBase extends HTMLElement {
             this.showError("Something went wrong.");
         }
     }
-    clearContent() {
+    stashContent() {
         if (this.shadowRoot) {
+            this.stashedStyleSheets = Array.from(this.shadowRoot.adoptedStyleSheets);
             this.shadowRoot.adoptedStyleSheets.length = 0;
         }
+        this.stashedChildNodes = Array.from(this.shadowRoot.childNodes);
         this.shadowRoot.childNodes.forEach((node) => {
             node.remove();
         });
+    }
+    restoreContent() {
+        if (this.shadowRoot) {
+            this.shadowRoot.adoptedStyleSheets = this.stashedStyleSheets;
+            this.removeLoading();
+            this.stashedChildNodes.forEach((node) => {
+                this.shadowRoot.appendChild(node);
+            });
+        }
     }
     removeLoading() {
         this.shadowRoot.querySelector("lieutenant-spinner").remove();
@@ -70,15 +81,30 @@ export class LieutenantBase extends HTMLElement {
         // Override in subclasses
         return
     }
+    async fetchGet(resource, callback) {
+        this.showLoading();
+        try {
+            const response = await fetch(resource);
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+            const json = await response.json();
+            callback(json);
+        }
+        catch(error) {
+            console.error(`Fetch problem: ${error.message}`);
+            this.showError("Something went wrong.");
+        }
+    }
 }
 customElements.define("lieutenant-base", LieutenantBase);
 
 
 export class LieutenantSpinner extends LieutenantBase {
-    constructor(width, height) {
+    constructor(height, width) {
         super();
-        this.width = width;
-        this.height = height;
+        this.height = (parseInt(height) + parseInt(width)) / 2;
+        this.width = (parseInt(width) + parseInt(height)) / 2;
     }
     connectedCallback() {
         const shadow = this.attachShadow({ mode: "open" });
@@ -87,8 +113,8 @@ export class LieutenantSpinner extends LieutenantBase {
             .container {
                 display: grid;
                 place-items:center;
-                width: ${this.width}px;
                 height: ${this.height}px;
+                width: ${this.width}px;
             }
 
             .spinner {
@@ -143,5 +169,19 @@ export class LieutenantError extends LieutenantBase {
 customElements.define("lieutenant-error", LieutenantError);
 
 
-export class BaseComp extends LieutenantBase {};
-customElements.define("base-comp", BaseComp);
+export class HelloWorld extends LieutenantBase {};
+customElements.define("hello-world", HelloWorld);
+
+
+export class SimpleCard extends LieutenantBase {
+    continue() {
+        const resource = this.getAttribute("data-resource");
+        this.fetchGet(resource, (data) => {
+            this.restoreContent();
+            this.shadowRoot.querySelector(".title").textContent = data.title;
+            this.shadowRoot.querySelector(".body").textContent = data.body;
+            this.shadowRoot.querySelector(".footer").textContent = data.footer;
+        });
+    }
+}
+customElements.define("simple-card", SimpleCard);
