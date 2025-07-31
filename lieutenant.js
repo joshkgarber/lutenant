@@ -40,9 +40,10 @@ export class LieutenantBase extends HTMLElement {
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
-            this.removeLoading();
             const htmlText = await response.text();
+            this.removeLoading();
             this.shadowRoot.innerHTML = htmlText;
+            this.continue();
         }
         catch(error) {
             console.error(`Fetch problem: ${error.message}`);
@@ -59,6 +60,10 @@ export class LieutenantBase extends HTMLElement {
     }
     removeLoading() {
         this.querySelector("lieutenant-spinner").remove();
+    }
+    continue() {
+        // Override in subclasses
+        return
     }
 }
 customElements.define("lieutenant-base", LieutenantBase);
