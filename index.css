@@ -25,16 +25,20 @@ body {
     place-items: center;
 }
 
+/*
 lieutenant-spinner {
     display: inline-block;
     color: var(--theme-text);
     text-align: center;
     width: 500px;
 }
+*/
 
+/*
 lieutenant-error {
     display: inline-block;
     color: var(--theme-text);
     text-align: center;
     width: 500px;
 }
+*/
