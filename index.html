@@ -4,8 +4,35 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>LieutenantJS</title>
-        <link rel="stylesheet" href="index.css">
-        <script src="lieutenant.js" type="module"></script>
+        <style>
+            :root {
+                --jkg-blue: #000517;
+                --theme-darkest: #121812;
+                --theme-darker: #379237;
+                --theme-dark: #54B435;
+                --theme-light: #82CD47;
+                --theme-accent: #F0FF42;
+                --theme-text: #F0FFF0;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            html {
+                font-size: 14px;
+                font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+            body {
+                min-height: 100vh;
+                background-color: var(--jkg-blue);
+                display:grid;
+                place-items: center;
+            }
+        </style>
+        <script src="lieutenant.js" type="module" async></script>
     </head>
     <body>
         <base-comp data-styles="base.css" data-content="base.html" data-loading-width="500" data-loading-height="500"></base-comp>
