@@ -4,82 +4,123 @@ export class LieutenantBase extends HTMLElement {
     }
     connectedCallback() {
         const shadow = this.attachShadow({ mode: "open" });
-        this.showLoading();
-        this.styles = this.getAttribute("data-styles");
-        this.content = this.getAttribute("data-content");
+        this.loadingHeight = this.getAttribute("data-loading-height");
+        this.loadingWidth = this.getAttribute("data-loading-width");
+        this.stylesSource = this.getAttribute("data-styles");
+        this.contentSource = this.getAttribute("data-content");
+        this.formSource = this.getAttribute("data-form");
         this.render();
     }
-    showLoading() {
-        this.stashContent();
-        const loadingHeight = this.getAttribute("data-loading-height");
-        const loadingWidth = this.getAttribute("data-loading-width");
-        this.shadowRoot.appendChild(new LieutenantSpinner(loadingHeight, loadingWidth));
+    showLoading(container=this.shadowRoot, height=this.loadingHeight, width=this.loadingWidth, stashChildNodes=true) {
+        if (stashChildNodes) this.stashChildNodes(container);
+        container.appendChild(new LieutenantSpinner(height, width));
     }
     showError(message) {
-        this.stashContent();
+        this.stashChildNodes();
         this.shadowRoot.appendChild(new LieutenantError(message));
     }
-    async render() {
+    async render(styles=this.stylesSource) {
+        this.showLoading();
         try {
-            const response = await fetch(this.styles);
+            const response = await fetch(styles);
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
             const stylesText = await response.text();
             const stylesheet = new CSSStyleSheet();
             stylesheet.replaceSync(stylesText);
-            this.renderContent(stylesheet);
+            this.shadowRoot.adoptedStyleSheets = [stylesheet];
+            this.renderContent();
         }
         catch(error) {
             console.error(`Fetch problem: ${error.message}`);
             this.showError("Something went wrong.");
         }
     }
-    async renderContent(stylesheet) {
+    async renderContent(parentNode=this.shadowRoot, content=this.contentSource, proceed=true) {
         try {
-            const response = await fetch(this.content);
+            const response = await fetch(content);
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
             const htmlText = await response.text();
-            this.shadowRoot.adoptedStyleSheets = [stylesheet];
-            const contentNodes = Document.parseHTMLUnsafe(htmlText).body.childNodes;
-            for (const contentNode of contentNodes) {
-                this.shadowRoot.appendChild(contentNode);
-            }
+            const htmlTextStripped = htmlText.trim().replaceAll(/>\s+</g, "><");
+            const contentNodes = Document.parseHTMLUnsafe(htmlTextStripped).body.childNodes;
             this.removeLoading();
-            this.continue();
+            for (const contentNode of contentNodes) {
+                parentNode.appendChild(contentNode);
+            }
+            if (proceed) this.proceed();
         }
         catch(error) {
             console.error(`Fetch problem: ${error.message}`);
             this.showError("Something went wrong.");
         }
     }
-    stashContent() {
-        this.stashedStyleSheets = Array.from(this.shadowRoot.adoptedStyleSheets);
-        this.shadowRoot.adoptedStyleSheets.length = 0;
-        this.stashedChildNodes = Array.from(this.shadowRoot.childNodes);
-        this.shadowRoot.childNodes.forEach((node) => {
+    async renderForm(parentNode=this.shadowRoot, form=this.formSource, callback=null) {
+        try {
+            const response = await fetch(form);
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+            const htmlText = await response.text();
+            const htmlTextStripped = htmlText.trim().replaceAll(/>\s+</g, "><");
+            const contentNodes = Document.parseHTMLUnsafe(htmlTextStripped).body.childNodes;
+            this.removeLoading();
+            for (const contentNode of contentNodes) {
+                parentNode.appendChild(contentNode);
+            }
+            const formNode = parentNode.querySelector("form");
+            console.log(formNode);
+            formNode.addEventListener("submit", (event) => {
+                event.preventDefault();
+                new FormData(formNode);
+            });
+            formNode.addEventListener("formdata", (event) => {
+                console.log(event);
+                const payload = new Object();
+                for (const entry of event.formData.entries()) {
+                    payload[entry[0]] = entry[1];
+                }
+                console.log(payload);
+                // const validName = /^[A-Za-z]{3}$/.test(payload["name"]);
+                // if (validName) {
+                //     this.sendScore(payload);
+                //     this.highScoreForm.querySelector('input[type="submit"]').remove();
+                // }
+                // else {
+                //     this.highScoreForm.formMessage.textContent = "Name must be three letters.";
+                // }
+            });
+            if (callback) callback();
+        }
+        catch(error) {
+            console.error(`Fetch problem: ${error.message}`);
+            this.showError("Something went wrong.");
+        }
+    }
+    stashChildNodes(parentNode=this.shadowRoot) {
+        this.stashedChildNodes = Array.from(parentNode.childNodes);
+        this.stashedChildNodes.forEach((node) => {
             node.remove();
         });
     }
-    restoreContent() {
-        this.shadowRoot.adoptedStyleSheets = this.stashedStyleSheets;
+    restoreContent(parentNode=this.shadowRoot) {
         this.removeLoading();
         this.stashedChildNodes.forEach((node) => {
-            this.shadowRoot.appendChild(node);
+            parentNode.appendChild(node);
         });
-        this.stashedStyleSheets = null;
         this.stashedChildNodes = null;
     }
     removeLoading() {
-        this.shadowRoot.querySelector("lieutenant-spinner").remove();
+        const spinner = this.shadowRoot.querySelector("lieutenant-spinner");
+        if (spinner) spinner.remove();
     }
-    continue() {
+    proceed() {
         // Override in subclasses
         return
     }
-    async fetchGet(resource, callback) {
+    async fetch(resource, options, callback) {
         this.showLoading();
         try {
             const response = await fetch(resource);
@@ -102,8 +143,13 @@ customElements.define("lieutenant-base", LieutenantBase);
 export class LieutenantSpinner extends LieutenantBase {
     constructor(height, width) {
         super();
-        this.height = (parseInt(height) + parseInt(width)) / 2;
-        this.width = (parseInt(width) + parseInt(height)) / 2;
+        // this.height = (parseInt(height) + parseInt(width)) / 2;
+        // this.width = (parseInt(width) + parseInt(height)) / 2;
+        if (height > width) {
+            this.sideLength = height / 2;
+        } else {
+            this.sideLength = width / 2;
+        }
     }
     connectedCallback() {
         const shadow = this.attachShadow({ mode: "open" });
@@ -112,8 +158,8 @@ export class LieutenantSpinner extends LieutenantBase {
             .container {
                 display: grid;
                 place-items:center;
-                height: ${this.height}px;
-                width: ${this.width}px;
+                height: ${this.sideLength}px;
+                width: ${this.sideLength}px;
             }
 
             .spinner {
@@ -173,12 +219,26 @@ customElements.define("hello-world", HelloWorld);
 
 
 export class SimpleCard extends LieutenantBase {
-    continue() {
+    proceed() {
         const resource = this.getAttribute("data-resource");
-        this.fetchGet(resource, (data) => {
+        this.fetch(resource, null, (data) => {
             this.shadowRoot.querySelector(".title").textContent = data.title;
             this.shadowRoot.querySelector(".body").textContent = data.body;
             this.shadowRoot.querySelector(".footer").textContent = data.footer;
+            const editButton = this.shadowRoot.querySelector(".edit-button");
+            editButton.addEventListener("click", (event) => {
+                const container = this.shadowRoot.querySelector(".container");
+                this.showLoading(container, 225, 385);
+                this.renderForm(container, "forms/simple_card_form.html", () => {
+                    const form = container.querySelector("form");
+                    const cancelButton = container.querySelector(".cancel-button");
+                    cancelButton.addEventListener("click", (event) => {
+                        form.remove();
+                        this.showLoading(container, 255, 385, false);
+                        this.restoreContent(container);
+                    });
+                });
+            });
         });
     }
 }

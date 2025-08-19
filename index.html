@@ -24,19 +24,20 @@
             html {
                 font-size: 14px;
                 font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+                height: 100%;
+            }
 
             body {
-                min-height: 100vh;
                 background-color: var(--jkg-blue);
                 display:grid;
                 place-items: center;
+                gap: 20px;
             }
         </style>
         <script src="lieutenant.js" type="module" async></script>
     </head>
     <body>
-        <hello-world data-styles="hello_world.css" data-content="hello_world.html" data-loading-height="502" data-loading-width="502"></hello-world>
-        <simple-card data-styles="simple_card.css" data-content="simple_card.html" data-resource="simple_card.json" data-loading-height="224" data-loading-width="394"></simple-card>
+        <simple-card data-styles="simple_card.css" data-content="simple_card.html" data-resource="simple_card.json" data-form="forms/simple_card_form" data-loading-height="214" data-loading-width="429"></simple-card>
     </body>
 </html>
 

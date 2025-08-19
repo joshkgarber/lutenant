@@ -1,17 +1,39 @@
 .container {
-    height: 200px;
-    width: 350px;
+    height: 190px;
+    width: 385px;
     color: var(--theme-text);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
     background-color: var(--theme-darkest);
     border: 2px solid var(--theme-dark);
-    border-radius: 15px;
+    border-radius: 10px;
     padding: 10px 20px;
 }
 
 .footer {
     font-size: 0.8em;
     color: var(--theme-darker);
+}
+
+.button {
+    width: fit-content;
+    padding: 3px 5px;
+    margin-left: auto;
+    color: inherit;
+    background-color: var(--theme-darker);
+    cursor: pointer;
+    border: 1px outset var(--theme-light);
+    border-radius: 5px;
+}
+
+.button:active {
+    border-style: inset;
+}
+
+.form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
